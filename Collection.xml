@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Flats>
+  <Flat key="10">
+    <id>5757</id>
+    <name>qwrety</name>
+    <Coordinates>
+      <x>34.0</x>
+      <y>45</y>
+    </Coordinates>
+    <creationDate>2020-04-25T05:36:01.068</creationDate>
+    <area>457</area>
+    <numberOfRooms>634</numberOfRooms>
+    <view>STREET</view>
+    <furnish>null</furnish>
+    <view>STREET</view>
+    <transport>LITTLE</transport>
+    <House>
+      <name>olool</name>
+      <year>1</year>
+      <numberOfFloors>4</numberOfFloors>
+      <numberOfFlatsOnFloor>3</numberOfFlatsOnFloor>
+    </House>
+  </Flat>
+  <Flat key="5">
+    <id>4011</id>
+    <name>OLEGA_HATA</name>
+    <Coordinates>
+      <x>168.0</x>
+      <y>21</y>
+    </Coordinates>
+    <creationDate>2020-04-25T04:20:21.156</creationDate>
+    <area>34</area>
+    <numberOfRooms>56</numberOfRooms>
+    <view>BAD</view>
+    <furnish>null</furnish>
+    <view>BAD</view>
+    <transport>FEW</transport>
+    <House>
+      <name>KURASHOV</name>
+      <year>18</year>
+      <numberOfFloors>456</numberOfFloors>
+      <numberOfFlatsOnFloor>56</numberOfFlatsOnFloor>
+    </House>
+  </Flat>
+  <Flat key="3">
+    <id>6373</id>
+    <name>GANNA</name>
+    <Coordinates>
+      <x>100.0</x>
+      <y>200</y>
+    </Coordinates>
+    <creationDate>2020-04-25T05:38:59.661</creationDate>
+    <area>400</area>
+    <numberOfRooms>1</numberOfRooms>
+    <view>BAD</view>
+    <furnish>BAD</furnish>
+    <view>BAD</view>
+    <transport>NONE</transport>
+    <House>
+      <name>SAVON</name>
+      <year>320</year>
+      <numberOfFloors>40</numberOfFloors>
+      <numberOfFlatsOnFloor>14</numberOfFlatsOnFloor>
+    </House>
+  </Flat>
+</Flats>
