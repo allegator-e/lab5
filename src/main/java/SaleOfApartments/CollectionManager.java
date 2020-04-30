@@ -20,16 +20,16 @@ public class CollectionManager {
     protected static ArrayList<String> scripts = new ArrayList<>();
     private String collectionPath;
     private File xmlCollection;
+    private Scanner reader = new Scanner(System.in);
     private Date initDate;
-    private boolean wasStart;
     private Iterator iterator;
     private Integer globalId;
+    private Integer nowId;
     private LocalDateTime globalCreationDate;
     protected static HashMap<String, String> manual;
 
     {
         houses = new TreeMap<>();
-        iterator = houses.entrySet().iterator();
         globalId = null;
         globalCreationDate = null;
         manual = new HashMap<>();
@@ -52,20 +52,16 @@ public class CollectionManager {
     }
 
     public CollectionManager(String collectionPath)  {
-        try {
-            File file = new File(collectionPath);
-            if (file.exists()) {
-                this.xmlCollection = file;
-                this.collectionPath = collectionPath;
-            }
-            else throw new FileNotFoundException();
-        } catch (FileNotFoundException ex) {
-            System.out.println("Путь до файла xml нужно передать через аргумент командной строки. Файл по указанному пути не существует.");
+        File file = new File(collectionPath);
+        if (file.exists()) {
+            this.xmlCollection = file;
+            this.collectionPath = collectionPath;
+        } else {
+            System.out.println("Файл по указанному пути не существует.");
             System.exit(1);
         }
         this.load();
         this.initDate = new Date();
-        wasStart = true;
     }
 
 
@@ -88,174 +84,114 @@ public class CollectionManager {
     }
 
     /**
+     * Вспомогательные методы для получения полей элемента
+     */
+
+    private String readString(String name) {
+        System.out.print("Введите " + name +": ");
+        return reader.nextLine();
+    }
+
+    private String readStringNotNull(String name) {
+        System.out.print("Введите " + name +": ");
+        String n = reader.nextLine();
+        if (n.equals("")) {
+            System.out.println("Поле не может быть null или пустой строкой ");
+            return readStringNotNull(name);
+        } else return n;
+    }
+
+    private Number readNumber(String name,String format) {
+        String n = readStringNotNull(name);
+        try {
+            switch (format) {
+                case "Float":
+                    return Float.parseFloat(n);
+                case "Integer":
+                    return Integer.parseInt(n);
+                case "Long":
+                    return Long.parseLong(n);
+                default:
+                    return null;
+            }
+        } catch (NumberFormatException ex) {
+            System.out.println("Аргумент не является значением типа " + format);
+            return readNumber(name,format);
+        }
+    }
+
+    private Enum readEnam(String name,String type) {
+        String n = readString(name);
+        try {
+            switch (type) {
+                case "Furnish":
+                    if (n.equals("")) return null;
+                    return Furnish.valueOf(n);
+                case "View":
+                    if (n.equals("")) return null;
+                    return View.valueOf(n);
+                case "Transport":
+                    return Transport.valueOf(n);
+                default:
+                    return null;
+            }
+        } catch (IllegalArgumentException ex) {
+            System.out.println("Значение поля неверное");
+            return readEnam(name,type);
+        }
+    }
+
+    /**
      * Получает значения элемента в коллекции
      */
     public Flat newFlat() {
         Scanner reader = new Scanner(System.in);
-        System.out.print("Введите name: ");
-        String name = reader.nextLine();
-        while (name.equals("")) {
-            System.out.println("Поле не может быть null или пустой строкой ");
-            System.out.print("Введите name: ");
-            name = reader.nextLine();
-        }
+        String name = readStringNotNull("name");
         System.out.println("Введите coordinates: ");
-        String a;
-        boolean p = false;
-        float x = 0;
-        while (!p) {
-            System.out.print("Введите x: ");
-            a = reader.nextLine();
-            try {
-                x = Float.parseFloat(a);
-                if (x > -227)
-                    p = true;
-                else {
-                    System.out.println("Значение поля должно быть больше -227");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Аргумент не является значением типа float");
-            }
+        float x = (Float) readNumber("x","Float");
+        while (x <= -227) {
+            System.out.println("Значение поля должно быть больше -227");
+            x = (Float) readNumber("x","Float");
         }
-        Long y = null;
-        while (p) {
-            System.out.print("Введите y: ");
-            a = reader.nextLine();
-            try {
-                y = Long.parseLong(a);
-                if (y <= 769)
-                    p = false;
-                else {
-                    System.out.println("Значение поля должно быть меньше 769");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Аргумент не является значением типа Long");
-            }
+        Long y = (Long) readNumber("y","Long");
+        while (y > 769) {
+            System.out.println("Значение поля должно быть меньше 769");
+            y = (Long) readNumber("y", "Long");
         }
-        long area = 0;
-        while (!p) {
-            System.out.print("Введите area: ");
-            a = reader.nextLine();
-            try {
-                area = Long.parseLong(a);
-                if (area > 0)
-                    p = true;
-                else {
-                    System.out.println("Значение поля должно быть больше 0");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Аргумент не является значением типа long");
-            }
+        long area = (Long) readNumber("area","Long");
+        while (area < 0) {
+            System.out.println("Значение поля должно быть больше 0");
+            area = (Long) readNumber("area", "Long");
         }
-        Integer numberOfRooms = null;
-        while (p) {
-            System.out.print("Введите numberOfRooms: ");
-            a = reader.nextLine();
-            try {
-                numberOfRooms = Integer.parseInt(a);
-                if (numberOfRooms > 0)
-                    p = false;
-                else {
-                    System.out.println("Значение поля должно быть больше 0");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Аргумент не является значением типа Integer");
-            }
+        Integer numberOfRooms = (Integer) readNumber("numberOfRooms","Integer");
+        while (numberOfRooms < 0) {
+            System.out.println("Значение поля должно быть больше 0");
+            numberOfRooms = (Integer) readNumber("numberOfRooms","Integer");
         }
-        System.out.print("Введите Furnish (DESIGNER, FINE, LITTLE, BAD, NONE, null): ");
-        String furnish_s = reader.nextLine();
-        while (!furnish_s.equals("") && !furnish_s.equals("DESIGNER") && !furnish_s.equals("FINE") && !furnish_s.equals("LITTLE") && !furnish_s.equals("BAD") && !furnish_s.equals("NONE")) {
-            System.out.println("Значение поля неверное");
-            System.out.print("Введите Furnish (DESIGNER, FINE, LITTLE, BAD, NONE, null): ");
-            furnish_s = reader.nextLine();
-        }
-        Furnish furnish = null;
-        if (!furnish_s.equals("")) furnish = Furnish.valueOf(furnish_s);
-        System.out.print("Введите View (PARK, STREET, BAD, null): ");
-        String view_s = reader.nextLine();
-        while (!view_s.equals("") && !view_s.equals("STREET") && !view_s.equals("PARK") && !view_s.equals("BAD")) {
-            System.out.println("Значение поля неверное");
-            System.out.print("Введите View (PARK, STREET, BAD, null): ");
-            view_s = reader.nextLine();
-        }
-        View view = null;
-        if (!view_s.equals("")) view = View.valueOf(view_s);
-        System.out.print("Введите Transport (ENOUGH, NORMAL, FEW, LITTLE, NONE): ");
-        String transport_s = reader.nextLine();
-        while (!transport_s .equals("FEW") && !transport_s .equals("NONE") && !transport_s .equals("LITTLE") && !transport_s .equals("NORMAL") && !transport_s .equals("ENOUGH")) {
-            System.out.println("Значение поля неверное");
-            System.out.print("Введите Transport (ENOUGH, NORMAL, FEW, LITTLE, NONE): ");
-            transport_s  = reader.nextLine();
-        }
-        Transport transport = Transport.valueOf(transport_s);
+        Furnish furnish = (Furnish) readEnam("Furnish (DESIGNER, FINE, LITTLE, BAD, NONE, null)","Furnish");
+        View view = (View) readEnam("View (PARK, STREET, BAD, null)","View");
+        Transport transport = (Transport) readEnam("Transport (ENOUGH, NORMAL, FEW, LITTLE, NONE)","Transport");
         System.out.println("Введите House: ");
-        System.out.print("Введите name: ");
-        String nameHouse = reader.nextLine();
-        while (nameHouse.equals("")) {
-            System.out.println("Поле не может быть null");
-            System.out.print("Введите name: ");
-            nameHouse = reader.nextLine();
+        String nameHouse = readStringNotNull("name");
+        int year = (Integer) readNumber("year","Integer");
+        while (year < 0) {
+            System.out.println("Значение поля должно быть больше 0");
+            year = (Integer) readNumber("year","Integer");
         }
-        int year = 0;
-        while (!p) {
-            System.out.print("Введите year: ");
-            a = reader.nextLine();
-            try {
-                year = Integer.parseInt(a);
-                if (year > 0)
-                    p = true;
-                else {
-                    System.out.println("Значение поля должно быть больше 0");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Аргумент не является значением типа int");
-            }
+        int numberOfFloors = (Integer) readNumber("numberOfFloors","Integer");
+        while (numberOfFloors < 0) {
+            System.out.println("Значение поля должно быть больше 0");
+            numberOfFloors = (Integer) readNumber("numberOfFloors","Integer");
         }
-        int numberOfFloors = 0;
-        while (p) {
-            System.out.print("Введите numberOfFloors: ");
-            a = reader.nextLine();
-            try {
-                numberOfFloors = Integer.parseInt(a);
-                if (numberOfFloors> 0)
-                    p = false;
-                else {
-                    System.out.println("Значение поля должно быть больше 0");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Аргумент не является значением типа int");
-            }
-        }
-        long numberOfFlatsOnFloor = 0;
-        while (!p) {
-            System.out.print("Введите numberOfFlatsOnFloor: ");
-            a = reader.nextLine();
-            try {
-                numberOfFlatsOnFloor = Long.parseLong(a);
-                if (numberOfFlatsOnFloor > 0)
-                    p = true;
-                else {
-                    System.out.println("Значение поля должно быть больше 0");
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Аргумент не является значением типа long");
-            }
+        long numberOfFlatsOnFloor = (Integer) readNumber("numberOfFlatsOnFloor","Integer");
+        while (numberOfFlatsOnFloor < 0) {
+            System.out.println("Значение поля должно быть больше 0");
+            numberOfFlatsOnFloor = (Integer) readNumber("numberOfFlatsOnFloor","Integer");
         }
 
-        int id = 0;
-        if (globalId == null) {
-            while (p) {
-                p = false;
-                Random random = new Random();
-                id = random.nextInt(10000) + 1;
-                for (Flat h : houses.values()) {
-                    if (h.getId() == id) {
-                        p = true;
-                        break;
-                    }
-                }
-            }
-        } else id = globalId;
+        int id;
+        if (globalId == null) id = ++nowId;
+        else id = globalId;
         LocalDateTime creationDate;
         if (globalCreationDate == null) {
             LocalDate d = LocalDate.now();
@@ -377,16 +313,17 @@ public class CollectionManager {
                 element.addContent(element_d);
                 doc.getRootElement().addContent(element);
             }
-            if (!xmlCollection.canWrite()) throw new SecurityException();
-            // Документ JDOM сформирован и готов к записи в файл
-            XMLOutputter xmlWriter = new XMLOutputter(Format.getPrettyFormat());
-            // сохнаряем в файл
-            xmlWriter.output(doc, new FileOutputStream(xmlCollection));
-            System.out.println("Коллекция успешно сохранена в файл.");
+            if (!xmlCollection.canWrite())
+                System.out.println("Файл защищён от записи. Невозможно сохранить коллекцию.");
+            else{
+                // Документ JDOM сформирован и готов к записи в файл
+                XMLOutputter xmlWriter = new XMLOutputter(Format.getPrettyFormat());
+                // сохнаряем в файл
+                xmlWriter.output(doc, new FileOutputStream(xmlCollection));
+                System.out.println("Коллекция успешно сохранена в файл.");
+            }
         } catch (IOException ex) {
-            System.out.println("Возникла непредвиденная ошибка. Коллекция не может быть записана в файл");
-        } catch (SecurityException ex) {
-            System.out.println("Файл защищён от записи. Невозможно сохранить коллекцию.");
+            System.out.println("Коллекция не может быть записана в файл");
         }
     }
 
@@ -394,27 +331,26 @@ public class CollectionManager {
      * Считывает и исполняет скрипт из указанного файла.
      * В скрипте содержатся команды в таком же виде, в котором их вводит пользователь в интерактивном режиме
      */
-    public void execute_script(String file, ArrayList<String> commands_of_script) throws IOException {
-        try {
-            if (file.charAt(1) != '/') file = System.getenv("PWD") + "/"+ file;
-            if (scripts.contains(file)) throw new RecursiveException();
-            File file1 = new File(file);
-            if (!file1.canRead()) throw new SecurityException();
-            scripts.add(file);
-            try (InputStreamReader commandReader = new InputStreamReader(new FileInputStream(file1))) {
-                StringBuilder s = new StringBuilder();
-                while (commandReader.ready()) s.append((char)commandReader.read());
-                String[] s1 = s.toString().split("\n");
-                commands_of_script.addAll(Arrays.asList(s1));
-            }
-        } catch (SecurityException ex) {
-            System.out.println("Файл защищён от чтения. Невозможно сохранить выполнить скрипт.");
-        } catch (FileNotFoundException ex) {
-            System.out.println("Скрипт по указанному пути не существует");
-            scripts.remove(scripts.size()-1);
-        } catch (RecursiveException ex) {
-            Commander.last_commands.remove(Commander.last_commands.size()-1);
+    public void execute_script(String file, ArrayList<String> commands_of_script) {
+        if (scripts.contains(file)) {
+            Commander.last_commands.remove(Commander.last_commands.size() - 1);
             System.out.println("Могло произойти зацикливание при исполнении скрипта: " + file + "\nКоманда не будет выполнена. Переход к следующей команде");
+        } else {
+            File file1 = new File(file);
+            if (!file1.canRead())
+                System.out.println("Файл защищён от чтения. Невозможно сохранить выполнить скрипт.");
+            else {
+                scripts.add(file);
+                try (InputStreamReader commandReader = new InputStreamReader(new FileInputStream(file1))) {
+                    StringBuilder s = new StringBuilder();
+                    while (commandReader.ready()) s.append((char) commandReader.read());
+                    String[] s1 = s.toString().split("\n");
+                    commands_of_script.addAll(Arrays.asList(s1));
+                } catch (IOException ex) {
+                    System.out.println("Невозможно считать скрипт");
+                    scripts.remove(scripts.size()-1);
+                }
+            }
         }
     }
 
@@ -513,70 +449,60 @@ public class CollectionManager {
     */
     public void load() {
         int beginSize = houses.size();
-        try {
-            if (!xmlCollection.exists()) throw new FileNotFoundException();
-        } catch (FileNotFoundException ex) {
+        if (!xmlCollection.exists()) {
             System.out.println("Файла по указанному пути не существует.");
-            if (!wasStart) System.exit(1);
-            else return;
-        }
-        try {
-            if (!xmlCollection.canRead() || !xmlCollection.canWrite()) throw new SecurityException();
-        } catch (SecurityException ex) {
+            System.exit(1);
+        } else if (!xmlCollection.canRead() || !xmlCollection.canWrite()) {
             System.out.println("Файл защищён от чтения и/или записи. Для работы программы нужны оба разрешения.");
-            if (!wasStart) System.exit(1);
-            else return;
-        }
-        try {
-            if (xmlCollection.length() == 0) throw new XMLParseException("");
-        } catch (XMLParseException ex) {
-            System.out.println("Файл пуст.");
-            if (!wasStart) System.exit(1);
-            else return;
-        }
-        try {
-            System.out.println("Идёт загрузка коллекции " + xmlCollection.getAbsolutePath());
-            // мы можем создать экземпляр JDOM Document из классов DOM, SAX и STAX Builder
-            org.jdom2.Document jdomDocument = createJDOMusingSAXParser(collectionPath);
-            Element root = jdomDocument.getRootElement();
-            // получаем список всех элементов
-            List<Element> labWorkListElements = root.getChildren("Flat");
-            // список объектов Student, в которых будем хранить
-            // считанные данные по каждому элементу
-            for (Element lab : labWorkListElements) {
-
-                Integer key = Integer.parseInt(lab.getAttributeValue("key"));
-                Integer id = Integer.parseInt(lab.getChildText("id"));
-                String name = lab.getChildText("name");
-                List<Element> lab_c = lab.getChildren("Coordinates");
-                float x = Float.parseFloat(lab_c.get(0).getChildText("x"));
-                Long y = Long.parseLong(lab_c.get(0).getChildText("y"));
-                LocalDateTime creationDate = LocalDateTime.parse(lab.getChildText("creationDate"));
-                long area = Long.parseLong(lab.getChildText("area"));
-                Integer numberOfRooms = Integer.parseInt(lab.getChildText("numberOfRooms"));
-                Furnish furnish = null;
-                String furnish_s = lab.getChildText("furnish");
-                if (!furnish_s.equals("null")) furnish = Furnish.valueOf(furnish_s);
-                View view = null;
-                String view_s = lab.getChildText("view");
-                if (!view_s.equals("null")) view = View.valueOf(view_s);
-                Transport transport = Transport.valueOf(lab.getChildText("transport"));
-                List<Element> lab_d = lab.getChildren("House");
-                String nameHouse = lab_d.get(0).getChildText("name");
-                int year = Integer.parseInt(lab_d.get(0).getChildText("year"));
-                int numberOfFloors = Integer.parseInt(lab_d.get(0).getChildText("numberOfFloors"));
-                long numberOfFlatsOnFloor = Long.parseLong(lab_d.get(0).getChildText("numberOfFlatsOnFloor"));
-                houses.put(key, new Flat(id, name, new Coordinates(x, y), creationDate, area, numberOfRooms, furnish, view, transport, new House(nameHouse, year, numberOfFloors, numberOfFlatsOnFloor)));
+            System.exit(1);
+        } else {
+            if (xmlCollection.length() == 0) {
+                System.out.println("Файл пуст.");
+                System.exit(1);
             }
-        }catch (Exception e) {
-            System.out.println("Не удалось загрузить коллекцию. Всё очеь-очень плохо!");
-            if (!wasStart) System.exit(1);
-            else return;
-
+                System.out.println("Идёт загрузка коллекции " + xmlCollection.getAbsolutePath());
+                // мы можем создать экземпляр JDOM Document из классов DOM, SAX и STAX Builder
+            try {
+                org.jdom2.Document jdomDocument = createJDOMusingSAXParser(collectionPath);
+                Element root = jdomDocument.getRootElement();
+                // получаем список всех элементов
+                List<Element> labWorkListElements = root.getChildren("Flat");
+                // список объектов Student, в которых будем хранить
+                // считанные данные по каждому элементу
+                Integer maxId = 0;
+                for (Element lab : labWorkListElements) {
+                    Integer key = Integer.parseInt(lab.getAttributeValue("key"));
+                    Integer id = Integer.parseInt(lab.getChildText("id"));
+                    if (id > maxId) maxId = id;
+                    String name = lab.getChildText("name");
+                    List<Element> lab_c = lab.getChildren("Coordinates");
+                    float x = Float.parseFloat(lab_c.get(0).getChildText("x"));
+                    Long y = Long.parseLong(lab_c.get(0).getChildText("y"));
+                    LocalDateTime creationDate = LocalDateTime.parse(lab.getChildText("creationDate"));
+                    long area = Long.parseLong(lab.getChildText("area"));
+                    Integer numberOfRooms = Integer.parseInt(lab.getChildText("numberOfRooms"));
+                    Furnish furnish = null;
+                    String furnish_s = lab.getChildText("furnish");
+                    if (!furnish_s.equals("null")) furnish = Furnish.valueOf(furnish_s);
+                    View view = null;
+                    String view_s = lab.getChildText("view");
+                    if (!view_s.equals("null")) view = View.valueOf(view_s);
+                    Transport transport = Transport.valueOf(lab.getChildText("transport"));
+                    List<Element> lab_d = lab.getChildren("House");
+                    String nameHouse = lab_d.get(0).getChildText("name");
+                    int year = Integer.parseInt(lab_d.get(0).getChildText("year"));
+                    int numberOfFloors = Integer.parseInt(lab_d.get(0).getChildText("numberOfFloors"));
+                    long numberOfFlatsOnFloor = Long.parseLong(lab_d.get(0).getChildText("numberOfFlatsOnFloor"));
+                    houses.put(key, new Flat(id, name, new Coordinates(x, y), creationDate, area, numberOfRooms, furnish, view, transport, new House(nameHouse, year, numberOfFloors, numberOfFlatsOnFloor)));
+                }
+                System.out.println("Коллекция успешно загружена. Добавлено " + (houses.size() - beginSize) + " элементов.");
+                nowId = maxId;
+            } catch (IOException | JDOMException ex) {
+                System.out.println("Коллекция не может быть загружена. Файл некорректен");
+                System.exit(1);
+            }
         }
-        System.out.println("Коллекция успешно загружена. Добавлено " + (houses.size() - beginSize) + " элементов.");
     }
-
     private static org.jdom2.Document createJDOMusingSAXParser(String fileName)
             throws JDOMException, IOException {
         SAXBuilder saxBuilder = new SAXBuilder();

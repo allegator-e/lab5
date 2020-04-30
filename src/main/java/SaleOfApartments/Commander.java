@@ -149,8 +149,6 @@ public class Commander {
         } catch (ArrayIndexOutOfBoundsException ex) {
             System.out.println("Отсутствует аргумент");
             last_commands.remove(last_commands.size()-1);
-        } catch (IOException ex) {
-            System.out.println("Невозможно считать данные из файла.");
         }
     }
 
