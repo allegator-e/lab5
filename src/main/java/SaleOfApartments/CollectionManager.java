@@ -337,8 +337,10 @@ public class CollectionManager {
             System.out.println("Могло произойти зацикливание при исполнении скрипта: " + file + "\nКоманда не будет выполнена. Переход к следующей команде");
         } else {
             File file1 = new File(file);
-            if (!file1.canRead())
-                System.out.println("Файл защищён от чтения. Невозможно сохранить выполнить скрипт.");
+            if (!file1.exists())
+                System.out.println("Файла с таким названием не существует.");
+            else if (!file1.canRead())
+                System.out.println("Файл защищён от чтения. Невозможно выполнить скрипт.");
             else {
                 scripts.add(file);
                 try (InputStreamReader commandReader = new InputStreamReader(new FileInputStream(file1))) {
